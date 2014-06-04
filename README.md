@@ -22,5 +22,5 @@ Dependencies:
     make install
 
 ###References
-[1]: http://www.iso.org/iso/home/standards/language_codes.htm
+ http://www.iso.org/iso/home/standards/language_codes.htm
 
