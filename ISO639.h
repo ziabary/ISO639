@@ -24,10 +24,10 @@
 #define ISO639_H
 
 typedef struct stuISO639{
-    char* ISO639_1;  /* 2 character code (ISO 639)  ascii */
-    char* ISO639_2T; /* 3 character code (ISO 639-2/T) ascii */
-    char* ISO639_2B; /* 3 character code (ISO 639-2/B) ascii */
-    char* FullName;  /* full language name in UTF */
+    const char* ISO639_1;  /* 2 character code (ISO 639)  ascii */
+    const char* ISO639_2T; /* 3 character code (ISO 639-2/T) ascii */
+    const char* ISO639_2B; /* 3 character code (ISO 639-2/B) ascii */
+    const char* FullName;  /* full language name in UTF */
 } stuISO639;
 
 static const stuISO639 ISO639[] = {
@@ -475,7 +475,7 @@ static const stuISO639 ISO639[] = {
  *         else a stuISO639 struct with all fields set to NULL
  */
 static const stuISO639& ISO639getInfo(const char* _code){
-    stuISO639* Iter = ISO639;
+    const stuISO639* Iter = ISO639;
     while(Iter->FullName){
         if (!strcmp(Iter->ISO639_1, _code) ||
             !strcmp(Iter->ISO639_2B, _code) ||
@@ -493,6 +493,7 @@ static const stuISO639& ISO639getInfo(const char* _code){
  * @return true on valid ISO639 codes else false
  */
 static bool ISO639isValid(const char* _code){
+    (void)ISO639isValid; //suppress compiler warning
     return ISO639getInfo(_code).FullName != 0;
 }
 
@@ -502,6 +503,7 @@ static bool ISO639isValid(const char* _code){
  * @return ISO639-1 code on valid input codes else a stuISO639 struct with all fields set to NULL
  */
 static const char* ISO639getAlpha2(const char* _code){
+    (void)ISO639getAlpha2; //suppress compiler warning
     return ISO639getInfo(_code).ISO639_2B;
 }
 
@@ -511,6 +513,7 @@ static const char* ISO639getAlpha2(const char* _code){
  * @return ISO639-2/B code on valid input codes else a stuISO639 struct with all fields set to NULL
  */
 static const char* ISO639getAlpha3B(const char* _code){
+    (void)ISO639getAlpha3B; //suppress compiler warning
     return ISO639getInfo(_code).ISO639_2B;
 }
 
@@ -520,6 +523,7 @@ static const char* ISO639getAlpha3B(const char* _code){
  * @return ISO639-2/T code on valid input codes else a stuISO639 struct with all fields set to NULL
  */
 static const char* ISO639getAlpha3T(const char* _code){
+    (void)ISO639getAlpha3T; //suppress compiler warning
     return ISO639getInfo(_code).ISO639_2T;
 }
 
@@ -529,6 +533,7 @@ static const char* ISO639getAlpha3T(const char* _code){
  * @return ISO name on valid ISO codes and NULL on invalid inputs.
  */
 static const char* ISO639getName(const char* _code){
+    (void)ISO639getName; //suppress compiler warning
     return ISO639getInfo(_code).FullName;
 }
 
