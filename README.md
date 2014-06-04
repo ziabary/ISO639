@@ -3,7 +3,7 @@ ISO639
 
 This is a simple C header file used to convert between different ISO639 Language codes. All of the ISO639 types including ISO639-1, ISO639-2/T and ISO639-2/B are supported.
 
-## Build and test ASM:
+## Build and test:
 
 Dependencies:
  * GCC (+4)
