@@ -504,7 +504,7 @@ static bool ISO639isValid(const char* _code){
  */
 static const char* ISO639getAlpha2(const char* _code){
     (void)ISO639getAlpha2; //suppress compiler warning
-    return ISO639getInfo(_code).ISO639_2B;
+    return ISO639getInfo(_code).ISO639_1;
 }
 
 /**
