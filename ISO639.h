@@ -1,6 +1,6 @@
 /*************************************************************************
  * ISO639 - A simple library to validate and convert ISO639
- * Copyright (C) 2014  S.M.Mohammadzadeh <mehran.m@aut.ac.ir>
+ * Copyright (C) 2014  S.Mohammad M. Ziabary <mehran.m@aut.ac.ir>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *************************************************************************/
 /**
- @author S.M.Mohammadzadeh <mehran.m@aut.ac.ir>
+ @author S.Mohammad M. Ziabary <mehran.m@aut.ac.ir>
  */
 
 #ifndef ISO639_H
