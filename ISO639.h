@@ -1,6 +1,6 @@
 /*************************************************************************
  * ISO639 - A simple library to validate and convert ISO639
- * Copyright (C) 2014  S.Mohammad M. Ziabary <mehran.m@aut.ac.ir>
+ * Copyright (C) 2014-2015  S.Mohammad M. Ziabary <mehran.m@aut.ac.ir>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,16 @@
 #ifndef ISO639_H
 #define ISO639_H
 
-typedef struct stuISO639{
+#include <malloc.h>
+
+typedef struct stuISO639Info{
     const char* ISO639_1;  /* 2 character code (ISO 639)  ascii */
     const char* ISO639_2T; /* 3 character code (ISO 639-2/T) ascii */
     const char* ISO639_2B; /* 3 character code (ISO 639-2/B) ascii */
     const char* FullName;  /* full language name in UTF */
-} stuISO639;
+} stuISO639Info;
 
-static const stuISO639 ISO639[] = {
+static const stuISO639Info ISO639Table[] = {
     { "ab", "abk", "abk", "Abkhazian"},
     { "", "ace", "ace", "Achinese"},
     { "", "ach", "ach", "Acoli"},
@@ -468,23 +470,147 @@ static const stuISO639 ISO639[] = {
     { 0, 0, 0, 0 }
 };
 
+
+typedef struct stuISO639TreeNode{
+    char Key;
+    stuISO639TreeNode* FirstChild;
+    stuISO639TreeNode* SiblingNode;
+    const stuISO639Info* Info;
+}stuISO639TreeNode;
+
+/**
+ * @brief _ISO639newNode Private method to construct a new stuISO639TreeNode
+ * @param _key Key to assign to then constructed node
+ * @return new created node
+ */
+static stuISO639TreeNode* _ISO639newNode(char _key, const stuISO639Info* _info){
+    (void)_ISO639newNode; //suppress compiler warning
+
+    stuISO639TreeNode* Node = (stuISO639TreeNode*)malloc(sizeof(stuISO639TreeNode));
+    Node->Key = _key;
+    Node->Info = _info;
+    Node->SiblingNode = NULL;
+    Node->FirstChild = NULL;
+    return Node;
+}
+
+/**
+ * @brief _ISO639followOrCreate Traverse tree by input key or create new node storing proposed info
+ * @param _key Key of current node
+ * @param _currNode Node from traverse is starting
+ */
+static void _ISO639followOrCreate(char _key,
+                                  stuISO639TreeNode**& _pCurrNode,
+                                  const stuISO639Info* _info){
+    (void)_ISO639followOrCreate; //suppress compiler warning
+
+    if(*_pCurrNode){
+        while(true){
+            if ((*_pCurrNode)->Key == _key){
+                if((*_pCurrNode)->Info == NULL)
+                    (*_pCurrNode)->Info = _info;
+                _pCurrNode = &(*_pCurrNode)->FirstChild;
+                break;
+            }else if((*_pCurrNode)->SiblingNode){
+                _pCurrNode = &(*_pCurrNode)->SiblingNode;
+            }else{
+                (*_pCurrNode)->SiblingNode = _ISO639newNode(_key,_info);
+                _pCurrNode = &(*_pCurrNode)->SiblingNode->FirstChild;
+                break;
+            }
+        }
+    }else{
+        *_pCurrNode = _ISO639newNode(_key,_info);
+        _pCurrNode = &(*_pCurrNode)->FirstChild;
+    }
+}
+
+#ifndef NULL
+#define NULL 0
+#endif
+
+#ifndef likely
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
+#endif
+
+static stuISO639TreeNode* ISO639TreeRoot = NULL;
+static const stuISO639Info*     InvalidInfo;
+
+/**
+ * @brief init initializes ISO639Tree to perform fast search.
+ * This function will be called implicitily by other functions if needed so no need to call it separately
+ */
+static void ISO639init(){
+    (void)ISO639init; //suppress compiler warning
+    if (unlikely(ISO639TreeRoot != NULL))
+        return;
+
+    const stuISO639Info* Iter = ISO639Table;
+    ISO639TreeRoot = _ISO639newNode(0,NULL);
+
+    while(Iter->FullName){
+        //Insert ISO639_1
+        if(Iter->ISO639_1[0] != '\0'){
+            stuISO639TreeNode** pCurrNode            = &ISO639TreeRoot->FirstChild;
+            _ISO639followOrCreate(Iter->ISO639_1[0], pCurrNode, NULL);
+            _ISO639followOrCreate(Iter->ISO639_1[1], pCurrNode, Iter);
+        }
+
+        //Insert ISO639_2B
+        if(Iter->ISO639_2B[0] != '\0'){
+            stuISO639TreeNode** pCurrNode            = &ISO639TreeRoot->FirstChild;
+            _ISO639followOrCreate(Iter->ISO639_2B[0], pCurrNode, NULL);
+            _ISO639followOrCreate(Iter->ISO639_2B[1], pCurrNode, NULL);
+            _ISO639followOrCreate(Iter->ISO639_2B[2], pCurrNode, Iter);
+        }
+
+        //Insert ISO639_2T
+        if(Iter->ISO639_2T[0] != '\0'){
+            stuISO639TreeNode** pCurrNode            = &ISO639TreeRoot->FirstChild;
+            _ISO639followOrCreate(Iter->ISO639_2T[0], pCurrNode, NULL);
+            _ISO639followOrCreate(Iter->ISO639_2T[1], pCurrNode, NULL);
+            _ISO639followOrCreate(Iter->ISO639_2T[2], pCurrNode, Iter);
+        }
+        ++Iter;
+    }
+    InvalidInfo = Iter;
+}
+
 /**
  * @brief ISO639getInfo is used to get corresponding struct based on input code
  * @param _code must be ISO639-1 OR ISO639-2/B OR ISO639-2/T
  * @return if found a valid stuISO639 struct with corresponding fields
  *         else a stuISO639 struct with all fields set to NULL
  */
-static const stuISO639& ISO639getInfo(const char* _code){
-    const stuISO639* Iter = ISO639;
-    while(Iter->FullName){
-        if (!strcmp(Iter->ISO639_1, _code) ||
-            !strcmp(Iter->ISO639_2B, _code) ||
-            !strcmp(Iter->ISO639_2T, _code))
+static const stuISO639Info& ISO639getInfo(const char* _code){
+    if (unlikely(ISO639TreeRoot == NULL))
+        ISO639init();
+    stuISO639TreeNode* GoalNode = ISO639TreeRoot;
+    stuISO639TreeNode* CurrNode            = ISO639TreeRoot->FirstChild;
+    const char* CodeIter = _code;
+    while (CodeIter && *CodeIter && GoalNode){
+        GoalNode = NULL;
+        if(CurrNode){
+            while(true){
+                if (CurrNode->Key == *CodeIter){
+                    GoalNode = CurrNode;
+                    CurrNode = CurrNode->FirstChild;
+                    break;
+                }else if(CurrNode->SiblingNode)
+                    CurrNode = CurrNode->SiblingNode;
+                else
+                    break;
+            }
+        }else
             break;
-        Iter++;
+        ++CodeIter;
     }
 
-    return *Iter;
+    if (GoalNode)
+        return *GoalNode->Info;
+    else
+        return *InvalidInfo;
 }
 
 /**
