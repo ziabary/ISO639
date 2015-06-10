@@ -1,6 +1,6 @@
 /*************************************************************************
  * ISO639 - A simple library to validate and convert ISO639
- * Copyright (C) 2014-2015  S.Mohammad M. Ziabary <mehran.m@aut.ac.ir>
+ * Copyright (C) 2014  S.Mohammad M. Ziabary <mehran.m@aut.ac.ir>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -586,8 +586,10 @@ static void ISO639init(){
 static const stuISO639Info& ISO639getInfo(const char* _code){
     if (unlikely(ISO639TreeRoot == NULL))
         ISO639init();
+    if (_code == NULL || _code[0] == '\0')
+        return *InvalidInfo;
     stuISO639TreeNode* GoalNode = ISO639TreeRoot;
-    stuISO639TreeNode* CurrNode            = ISO639TreeRoot->FirstChild;
+    stuISO639TreeNode* CurrNode = ISO639TreeRoot->FirstChild;
     const char* CodeIter = _code;
     while (CodeIter && *CodeIter && GoalNode){
         GoalNode = NULL;
